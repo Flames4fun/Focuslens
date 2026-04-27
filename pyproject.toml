@@ -1,0 +1,80 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "focuslens"
+version = "0.1.0"
+description = "Privacy-first local focus tracker powered by webcam-based face landmarks."
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+authors = [
+  { name = "Luis Carlos Fuentes De Avila" },
+]
+keywords = [
+  "computer-vision",
+  "focus",
+  "mediapipe",
+  "opencv",
+  "privacy",
+  "productivity",
+  "streamlit",
+  "webcam",
+]
+classifiers = [
+  "Development Status :: 2 - Pre-Alpha",
+  "Intended Audience :: Developers",
+  "Intended Audience :: End Users/Desktop",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering :: Image Recognition",
+  "Topic :: Utilities",
+]
+dependencies = [
+  "mediapipe>=0.10",
+  "opencv-python>=4.9",
+  "pandas>=2.2",
+  "streamlit>=1.35",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0",
+  "ruff>=0.5",
+]
+
+[project.scripts]
+focuslens = "focuslens.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/Flames4fun/Focuslens"
+Repository = "https://github.com/Flames4fun/Focuslens"
+Issues = "https://github.com/Flames4fun/Focuslens/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["focuslens"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+
+[tool.ruff.lint]
+select = [
+  "E",
+  "F",
+  "I",
+  "UP",
+  "B",
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"

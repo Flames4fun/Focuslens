@@ -30,7 +30,13 @@ It is designed for students, developers, creators, and deep-work sessions where 
 
 ## Project Status
 
-FocusLens is in its early open source build phase. The product direction is defined, and the first version is scoped around a local CLI, JSON/CSV session storage, and a Streamlit dashboard.
+FocusLens is in its early open source build phase. The product direction is defined, the package basics are in place, and the next implementation step is to add tests for the pure attention-state classifier before connecting webcam input.
+
+Current local progress:
+
+- Created: `README.md`, `LICENSE`, `pyproject.toml`, `focuslens/config.py`, `focuslens/__init__.py`, `focuslens/attention.py`.
+- Next: `tests/test_attention.py`.
+- After that: `focuslens/face_tracker.py`, `focuslens/camera.py`, `focuslens/overlay.py`, and `focuslens/cli.py`.
 
 ## Core Signals
 
