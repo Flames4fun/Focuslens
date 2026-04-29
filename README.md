@@ -30,13 +30,13 @@ It is designed for students, developers, creators, and deep-work sessions where 
 
 ## Project Status
 
-FocusLens is in its early open source build phase. The product direction is defined, the package basics are in place, and the next implementation step is to add tests for the pure attention-state classifier before connecting webcam input.
+FocusLens is in its early open source build phase. The product direction is defined, the package basics are in place, and the next implementation step is to connect MediaPipe face landmarks to the tested attention classifier.
 
 Current local progress:
 
-- Created: `README.md`, `LICENSE`, `pyproject.toml`, `focuslens/config.py`, `focuslens/__init__.py`, `focuslens/attention.py`.
-- Next: `tests/test_attention.py`.
-- After that: `focuslens/face_tracker.py`, `focuslens/camera.py`, `focuslens/overlay.py`, and `focuslens/cli.py`.
+- Created: `README.md`, `LICENSE`, `pyproject.toml`, `focuslens/config.py`, `focuslens/__init__.py`, `focuslens/attention.py`, `tests/test_attention.py`.
+- Next: `focuslens/face_tracker.py`.
+- After that: `focuslens/camera.py`, `focuslens/overlay.py`, and `focuslens/cli.py`.
 
 ## Core Signals
 
@@ -48,6 +48,7 @@ Current local progress:
 | `TOO_CLOSE` | The face is too close to the camera. |
 | `TOO_FAR` | The face is too far from the camera. |
 | `PAUSED` | The session is manually paused. |
+| `UNKNOWN` | A face is visible, but orientation cannot be estimated from available landmarks. |
 
 ## Features Planned For V1
 
