@@ -30,13 +30,13 @@ It is designed for students, developers, creators, and deep-work sessions where 
 
 ## Project Status
 
-FocusLens is in its early open source build phase. The product direction is defined, the package basics are in place, and the next implementation step is to connect MediaPipe face landmarks to the tested attention classifier.
+FocusLens is in its early open source build phase. The product direction is defined, the package basics are in place, the OpenCV camera boundary exists, the pure attention classifier is tested, and the MediaPipe face-tracking boundary now exists.
 
 Current local progress:
 
-- Created: `README.md`, `LICENSE`, `pyproject.toml`, `focuslens/config.py`, `focuslens/__init__.py`, `focuslens/attention.py`, `tests/test_attention.py`.
-- Next: `focuslens/face_tracker.py`.
-- After that: `focuslens/camera.py`, `focuslens/overlay.py`, and `focuslens/cli.py`.
+- Created: `README.md`, `LICENSE`, `pyproject.toml`, `focuslens/config.py`, `focuslens/__init__.py`, `focuslens/attention.py`, `focuslens/camera.py`, `focuslens/face_tracker.py`, `tests/test_attention.py`, `tests/test_camera.py`, `tests/test_config.py`, `tests/test_face_tracker.py`, and `tests/test_public_api.py`.
+- Next: `focuslens/overlay.py` and `focuslens/cli.py`, so a webcam frame can flow through OpenCV, MediaPipe, the attention classifier, and a local video overlay.
+- After that: `focuslens/session.py`, `focuslens/storage.py`, `dashboard.py`, `docs/privacy.md`, and `.github/workflows/ci.yml`.
 
 ## Core Signals
 
@@ -202,10 +202,10 @@ FocusLens is intentionally lightweight. It estimates useful signals, not absolut
 
 | Version | Focus |
 | --- | --- |
-| `0.1` | Webcam loop, face detection, state classification, local summaries. |
-| `0.2` | Streamlit dashboard, session history, charts, privacy docs. |
-| `0.3` | Pomodoro mode, threshold configuration, improved calibration. |
-| `1.0` | Stable CLI, tests, CI, polished docs, demo assets. |
+| `0.1` | Current core: configuration, OpenCV camera boundary, attention classification, MediaPipe face tracker boundary, and tests. Next: overlay and run CLI. |
+| `0.2` | Session metrics, JSON/CSV storage, and CLI commands. |
+| `0.3` | Streamlit dashboard, session history, charts, privacy docs, and CI. |
+| `1.0` | Stable UX, calibration polish, demo assets, and contributor-ready docs. |
 
 ## Contributing
 
