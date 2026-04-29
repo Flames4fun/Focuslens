@@ -8,6 +8,7 @@ from focuslens.attention import (
     classify_attention,
 )
 from focuslens.config import DEFAULT_CONFIG, FocusLensConfig
+from focuslens.face_tracker import FaceResult, FaceTracker
 
 __version__ = "0.1.0"
 
@@ -16,6 +17,8 @@ __all__ = [
     "AttentionState",
     "DEFAULT_CONFIG",
     "FaceObservation",
+    "FaceResult",
+    "FaceTracker",
     "FocusLensConfig",
     "__version__",
     "analyze_attention",
