@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
-from enum import Enum
-from typing import Protocol, Sequence
+from enum import StrEnum
+from typing import Protocol
 
 from focuslens.config import DEFAULT_CONFIG, FocusLensConfig
 
@@ -15,7 +16,7 @@ LEFT_EYE_OUTER_INDEX = 33
 RIGHT_EYE_OUTER_INDEX = 263
 
 
-class AttentionState(str, Enum):
+class AttentionState(StrEnum):
     """Session states produced by the attention classifier."""
 
     FOCUSED = "focused"
@@ -24,6 +25,7 @@ class AttentionState(str, Enum):
     TOO_CLOSE = "too_close"
     TOO_FAR = "too_far"
     PAUSED = "paused"
+    UNKNOWN = "unknown"
 
 
 @dataclass(frozen=True, slots=True)
@@ -99,7 +101,7 @@ def analyze_attention(
 
     if head_offset is None:
         return AttentionAnalysis(
-            state=AttentionState.FOCUSED,
+            state=AttentionState.UNKNOWN,
             face_bbox_ratio=face_bbox_ratio,
             reason="orientation_landmarks_missing",
         )
