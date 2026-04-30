@@ -9,7 +9,7 @@
 
 ## Estado local actual
 
-Actualizado: 2026-04-29
+Actualizado: 2026-04-30
 
 Archivos ya creados en el repositorio local:
 
@@ -21,18 +21,39 @@ Archivos ya creados en el repositorio local:
 - [x] `focuslens/attention.py`
 - [x] `focuslens/camera.py`
 - [x] `focuslens/face_tracker.py`
+- [x] `focuslens/overlay.py`
+- [x] `focuslens/cli.py`
+- [x] `focuslens/session.py`
+- [x] `focuslens/storage.py`
 - [x] `tests/test_attention.py`
 - [x] `tests/test_camera.py`
 - [x] `tests/test_config.py`
 - [x] `tests/test_face_tracker.py`
+- [x] `tests/test_overlay.py`
+- [x] `tests/test_cli.py`
+- [x] `tests/test_session.py`
+- [x] `tests/test_storage.py`
 - [x] `tests/test_public_api.py`
 
-Siguientes archivos recomendados:
+Verificacion local encontrada:
 
-1. `focuslens/overlay.py`, para dibujar estado, tiempo básico y señales visuales encima del frame local.
-2. `focuslens/cli.py`, para exponer un primer `focuslens run` que conecte cámara, MediaPipe Face Tracker, clasificador de atención y overlay.
+- `focuslens/overlay.py` y `focuslens/cli.py` ya existen, asi que ya no son el siguiente bloque pendiente.
+- `focuslens/session.py` ya existe y convierte estados en metricas de sesion sin tocar frames de camara.
+- `focuslens/storage.py` ya existe y guarda resumenes locales en JSON y CSV sin tocar frames de camara.
+- Con `.venv\Scripts\python.exe`, pasan `103` tests.
+- `sessions/` esta ignorado en `.gitignore` para evitar subir historial personal de sesiones.
+- Con `.venv\Scripts\python.exe -m ruff check .`, Ruff pasa sin errores.
+- Con `.venv\Scripts\python.exe -m ruff format --check .`, los archivos ya estan formateados.
+- El `python` global apunta a Python 3.14 y no tiene `pytest` ni `ruff`; para validar el proyecto se debe usar `.venv` o instalar el proyecto en el entorno activo.
+- `focuslens run` ya conecta camara, MediaPipe Face Tracker, clasificador de atencion y overlay, pero todavia requiere un modelo local `assets/face_landmarker.task` o una ruta por `--model-path` / `FOCUSLENS_MODEL_PATH`.
+- `focuslens dashboard` ya existe como comando, pero solo lanza Streamlit cuando exista `dashboard.py`.
 
-Después de eso, seguir con `focuslens/session.py` y `focuslens/storage.py` para métricas, eventos y persistencia local en JSON/CSV.
+Siguiente bloque recomendado:
+
+1. Integrar `SessionTracker` y storage en `focuslens/cli.py`, para que `focuslens run` guarde una sesion al cerrar.
+2. Ampliar `tests/test_cli.py` para cubrir guardado al finalizar.
+
+Despues de eso, seguir con `dashboard.py`, `docs/privacy.md` y `.github/workflows/ci.yml`.
 
 ---
 
@@ -69,12 +90,14 @@ focuslens run
 focuslens dashboard
 ```
 
-También puede tener una forma simple mientras se construye:
+Forma de desarrollo actual:
 
 ```bash
-python app.py
+python -m focuslens.cli run
 streamlit run dashboard.py
 ```
+
+Nota: `streamlit run dashboard.py` queda pendiente hasta crear `dashboard.py`.
 
 ---
 
@@ -1226,14 +1249,14 @@ Frase en español:
 ## 26. Checklist final antes de publicar
 
 - [ ] README completo.
-- [ ] Licencia MIT.
+- [x] Licencia MIT.
 - [ ] Instalación probada desde cero.
 - [ ] `focuslens run` funciona.
 - [ ] `streamlit run dashboard.py` funciona.
-- [ ] JSON se guarda correctamente.
-- [ ] CSV se actualiza correctamente.
-- [ ] Tests pasan.
-- [ ] Ruff pasa.
+- [x] JSON se guarda correctamente desde `focuslens/storage.py`.
+- [x] CSV se actualiza correctamente desde `focuslens/storage.py`.
+- [x] Tests pasan con `.venv\Scripts\python.exe -m pytest` (`103` tests).
+- [x] Ruff pasa con `.venv\Scripts\python.exe -m ruff check .` y `.venv\Scripts\python.exe -m ruff format --check .`.
 - [ ] CI configurado.
 - [ ] Demo GIF añadido.
 - [ ] `docs/privacy.md` añadido.
