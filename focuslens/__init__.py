@@ -18,6 +18,14 @@ from focuslens.overlay import (
     build_overlay_lines,
     render_overlay,
 )
+from focuslens.session import SessionSummary, SessionTracker
+from focuslens.storage import (
+    SessionSaveResult,
+    append_session_csv,
+    ensure_save_dir,
+    save_session_summary,
+    write_session_json,
+)
 
 __version__ = "0.1.0"
 
@@ -35,10 +43,17 @@ __all__ = [
     "OverlayMetrics",
     "OverlayRenderer",
     "OverlayTheme",
+    "SessionSummary",
+    "SessionTracker",
+    "SessionSaveResult",
     "WebcamCamera",
     "__version__",
     "analyze_attention",
+    "append_session_csv",
     "build_overlay_lines",
     "classify_attention",
+    "ensure_save_dir",
     "render_overlay",
+    "save_session_summary",
+    "write_session_json",
 ]
