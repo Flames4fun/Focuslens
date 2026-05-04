@@ -54,6 +54,11 @@ def _validate_count(name: str, value: int) -> None:
         raise ValueError(f"{name} must be a non-negative integer")
 
 
+def _validate_percentage(name: str, value: float) -> None:
+    if not isfinite(value) or not 0 <= value <= 100:
+        raise ValueError(f"{name} must be between 0 and 100")
+
+
 def _validate_color(name: str, color: BgrColor) -> BgrColor:
     try:
         components = tuple(color)
@@ -83,6 +88,8 @@ class OverlayMetrics:
     focused_seconds: float | None = None
     away_seconds: float | None = None
     looking_away_events: int | None = None
+    focus_score: float | None = None
+    presence_score: float | None = None
 
     def __post_init__(self) -> None:
         """Reject misleading values before they reach the visual layer."""
@@ -97,6 +104,12 @@ class OverlayMetrics:
 
         if self.looking_away_events is not None:
             _validate_count("looking_away_events", self.looking_away_events)
+
+        if self.focus_score is not None:
+            _validate_percentage("focus_score", self.focus_score)
+
+        if self.presence_score is not None:
+            _validate_percentage("presence_score", self.presence_score)
 
 
 @dataclass(frozen=True, slots=True)
@@ -396,6 +409,12 @@ def build_overlay_lines(
 
     if metrics.looking_away_events is not None:
         lines.append(f"Looking away: {metrics.looking_away_events}")
+
+    if metrics.focus_score is not None:
+        lines.append(f"Focus score: {metrics.focus_score:.0f}%")
+
+    if metrics.presence_score is not None:
+        lines.append(f"Presence: {metrics.presence_score:.0f}%")
 
     return tuple(lines)
 
