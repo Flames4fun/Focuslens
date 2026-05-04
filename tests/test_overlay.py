@@ -101,6 +101,12 @@ def test_overlay_metrics_rejects_negative_or_non_finite_values():
     with pytest.raises(ValueError, match="looking_away_events must be"):
         OverlayMetrics(looking_away_events=-1)
 
+    with pytest.raises(ValueError, match="focus_score must be between 0 and 100"):
+        OverlayMetrics(focus_score=101)
+
+    with pytest.raises(ValueError, match="presence_score must be between 0 and 100"):
+        OverlayMetrics(presence_score=-1)
+
 
 def test_overlay_theme_rejects_invalid_visual_settings():
     with pytest.raises(ValueError, match="background_alpha must be between 0 and 1"):
@@ -131,6 +137,8 @@ def test_build_overlay_lines_uses_only_safe_derived_values():
         focused_seconds=55,
         away_seconds=3,
         looking_away_events=2,
+        focus_score=89.4,
+        presence_score=95.1,
     )
 
     lines = build_overlay_lines(analysis, metrics)
@@ -141,6 +149,8 @@ def test_build_overlay_lines_uses_only_safe_derived_values():
         "Focused: 00:00:55",
         "Away: 00:00:03",
         "Looking away: 2",
+        "Focus score: 89%",
+        "Presence: 95%",
     )
     rendered_text = " ".join(lines)
     assert "internal_reason_should_not_be_displayed" not in rendered_text
@@ -152,7 +162,11 @@ def test_renderer_draws_status_bar_panel_and_text_without_storing_frames():
     frame = FakeFrame()
     cv2 = FakeCv2()
     renderer = OpenCVOverlayRenderer(cv2_module=cv2)
-    metrics = OverlayMetrics(elapsed_seconds=5, looking_away_events=1)
+    metrics = OverlayMetrics(
+        elapsed_seconds=5,
+        looking_away_events=1,
+        focus_score=100,
+    )
 
     result = renderer.render(frame, AttentionState.FOCUSED, metrics)
 
@@ -164,6 +178,7 @@ def test_renderer_draws_status_bar_panel_and_text_without_storing_frames():
         "Status: Focused",
         "Session: 00:00:05",
         "Looking away: 1",
+        "Focus score: 100%",
     ]
 
 
