@@ -30,15 +30,16 @@ It is designed for students, developers, creators, and deep-work sessions where 
 
 ## Project Status
 
-FocusLens is in its early open source build phase. The product direction is defined, the package basics are in place, the OpenCV camera boundary exists, the pure attention classifier is tested, the MediaPipe face-tracking boundary exists, the local preview loop is wired through the CLI and overlay renderer, and session metrics plus local JSON/CSV summary storage are integrated into `focuslens run`.
+FocusLens is in its early open source build phase. The product direction is defined, the package basics are in place, the OpenCV camera boundary exists, the pure attention classifier is tested, the MediaPipe face-tracking boundary exists, the local preview loop is wired through the CLI and overlay renderer, session metrics plus local JSON/CSV summary storage are integrated into `focuslens run`, and the local Streamlit dashboard now reads the aggregate CSV history.
 
 Current local progress, checked on 2026-05-04:
 
-- Created and tested: `focuslens/config.py`, `focuslens/attention.py`, `focuslens/camera.py`, `focuslens/face_tracker.py`, `focuslens/overlay.py`, `focuslens/cli.py`, `focuslens/session.py`, `focuslens/storage.py`, and their current unit tests.
-- Verified with the project virtual environment: `131 passed`, `ruff check .` passed, and `ruff format --check .` passed.
-- The global `python` currently points to Python 3.14 in this workspace and does not have `pytest` or `ruff`; use `.venv\Scripts\python.exe` or activate `.venv` before running checks.
+- Created and tested: `focuslens/config.py`, `focuslens/attention.py`, `focuslens/camera.py`, `focuslens/face_tracker.py`, `focuslens/overlay.py`, `focuslens/cli.py`, `focuslens/session.py`, `focuslens/storage.py`, `focuslens/dashboard.py`, and their current unit tests.
+- Verified with the project virtual environment: `142 passed`, `ruff check .` passed, and `ruff format --check .` passed.
+- The active project virtual environment currently uses Python 3.14 in this workspace; use `.venv\Scripts\python.exe` or activate `.venv` before running checks.
 - Closing `focuslens run` now writes a local JSON summary and appends `sessions.csv`.
-- Next: build `dashboard.py`, `docs/privacy.md`, and `.github/workflows/ci.yml`.
+- `focuslens dashboard` now launches the local Streamlit dashboard when Streamlit and pandas are installed.
+- Next: add `docs/privacy.md`, `.github/workflows/ci.yml`, sample session data, and demo assets.
 
 ## Core Signals
 
@@ -180,13 +181,16 @@ streamlit run dashboard.py
 
 ## Dashboard
 
-The dashboard is planned as a local Streamlit view for:
+The dashboard is a local Streamlit view for:
 
-- Latest session summary.
-- Focus score and presence score.
-- Away time and looking-away events.
-- Session history table.
-- Simple charts for focus, absence, and distractions.
+- Weighted focus and presence scores.
+- Latest session and best focus score.
+- Aggregate state timing and counted events.
+- Focus/presence trend charts.
+- State distribution and event charts.
+- Session history table derived from `sessions/sessions.csv`.
+
+The dashboard reads only `sessions/sessions.csv`. It does not inspect webcam frames, session JSON files, secrets, or external services.
 
 ## Privacy
 
@@ -216,7 +220,7 @@ FocusLens is intentionally lightweight. It estimates useful signals, not absolut
 | --- | --- |
 | `0.1` | Current core: configuration, OpenCV camera boundary, attention classification, MediaPipe face tracker boundary, overlay rendering, session metrics, run CLI, and tests. |
 | `0.2` | Current CLI session saving with the existing session metrics and JSON/CSV storage modules. |
-| `0.3` | Streamlit dashboard, session history, charts, privacy docs, and CI. |
+| `0.3` | Current Streamlit dashboard, session history, and charts. Next: privacy docs and CI. |
 | `1.0` | Stable UX, calibration polish, demo assets, and contributor-ready docs. |
 
 ## Contributing
