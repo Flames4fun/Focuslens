@@ -30,15 +30,15 @@ It is designed for students, developers, creators, and deep-work sessions where 
 
 ## Project Status
 
-FocusLens is in its early open source build phase. The product direction is defined, the package basics are in place, the OpenCV camera boundary exists, the pure attention classifier is tested, the MediaPipe face-tracking boundary exists, the first local preview loop is wired through the CLI and overlay renderer, and session metrics plus local summary storage now exist as tested modules.
+FocusLens is in its early open source build phase. The product direction is defined, the package basics are in place, the OpenCV camera boundary exists, the pure attention classifier is tested, the MediaPipe face-tracking boundary exists, the local preview loop is wired through the CLI and overlay renderer, and session metrics plus local JSON/CSV summary storage are integrated into `focuslens run`.
 
-Current local progress, checked on 2026-04-30:
+Current local progress, checked on 2026-05-04:
 
 - Created and tested: `focuslens/config.py`, `focuslens/attention.py`, `focuslens/camera.py`, `focuslens/face_tracker.py`, `focuslens/overlay.py`, `focuslens/cli.py`, `focuslens/session.py`, `focuslens/storage.py`, and their current unit tests.
-- Verified with the project virtual environment: `103 passed`, `ruff check .` passed, and `ruff format --check .` passed.
+- Verified with the project virtual environment: `131 passed`, `ruff check .` passed, and `ruff format --check .` passed.
 - The global `python` currently points to Python 3.14 in this workspace and does not have `pytest` or `ruff`; use `.venv\Scripts\python.exe` or activate `.venv` before running checks.
-- Next: integrate `SessionTracker` and storage into `focuslens run`, so closing a run writes the JSON/CSV summary.
-- After that: build `dashboard.py`, `docs/privacy.md`, and `.github/workflows/ci.yml`.
+- Closing `focuslens run` now writes a local JSON summary and appends `sessions.csv`.
+- Next: build `dashboard.py`, `docs/privacy.md`, and `.github/workflows/ci.yml`.
 
 ## Core Signals
 
@@ -148,7 +148,13 @@ focuslens run
 focuslens dashboard
 ```
 
-`focuslens run` expects a local MediaPipe Face Landmarker model at `assets/face_landmarker.task`, or a path supplied with `--model-path` / `FOCUSLENS_MODEL_PATH`. `focuslens dashboard` is already exposed as a command, but it needs `dashboard.py` to exist before it can open Streamlit.
+`focuslens run` expects a local MediaPipe Face Landmarker model at `assets/face_landmarker.task`, or a path supplied with `--model-path` / `FOCUSLENS_MODEL_PATH`. When the run closes, it tries to save JSON and CSV summaries to `sessions/` by default, even if the preview loop fails. Use `--save-dir` to choose another local directory, or `--no-save` for a temporary session.
+
+Session summaries can be sensitive because they include timestamps, focus metrics, absence time, and pause history. FocusLens warns when you choose a non-default save directory or when summaries are written inside a Git repository. Confirm the directory is ignored before sharing commits, cloud folders, or synced desktops.
+
+During `focuslens run`, press `p` to pause or resume attention analysis. The webcam preview remains open while paused, but FocusLens does not run face tracking for paused frames.
+
+`focuslens dashboard` is already exposed as a command, but it needs `dashboard.py` to exist before it can open Streamlit. Only run trusted local dashboard files; `--path` must point to a `.py` file inside this project unless you explicitly pass `--allow-external-dashboard`.
 
 Development fallback:
 
@@ -189,6 +195,7 @@ FocusLens is designed around privacy by default:
 - Webcam frames are processed locally in memory.
 - Images and videos are not saved by default.
 - Session files store aggregated metrics only.
+- Session summaries can still reveal personal work patterns, so review custom save directories before syncing or sharing them.
 - Local `sessions/` output is ignored by Git to reduce accidental sharing of personal session history.
 - No account is required.
 - No cloud upload is required.
@@ -208,7 +215,7 @@ FocusLens is intentionally lightweight. It estimates useful signals, not absolut
 | Version | Focus |
 | --- | --- |
 | `0.1` | Current core: configuration, OpenCV camera boundary, attention classification, MediaPipe face tracker boundary, overlay rendering, session metrics, run CLI, and tests. |
-| `0.2` | CLI session saving with the existing session metrics and JSON/CSV storage modules. |
+| `0.2` | Current CLI session saving with the existing session metrics and JSON/CSV storage modules. |
 | `0.3` | Streamlit dashboard, session history, charts, privacy docs, and CI. |
 | `1.0` | Stable UX, calibration polish, demo assets, and contributor-ready docs. |
 
