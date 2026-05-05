@@ -10,6 +10,7 @@
 [![MediaPipe](https://img.shields.io/badge/MediaPipe-Face%20Landmarks-E50914?style=for-the-badge&labelColor=0B0B0F)](#tech-stack)
 [![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-E50914?style=for-the-badge&labelColor=0B0B0F&logo=streamlit&logoColor=white)](#dashboard)
 [![MIT](https://img.shields.io/badge/License-MIT-E50914?style=for-the-badge&labelColor=0B0B0F)](LICENSE)
+[![CI](https://github.com/Flames4fun/Focuslens/actions/workflows/ci.yml/badge.svg)](https://github.com/Flames4fun/Focuslens/actions/workflows/ci.yml)
 
 <br />
 
@@ -30,16 +31,17 @@ It is designed for students, developers, creators, and deep-work sessions where 
 
 ## Project Status
 
-FocusLens is in its early open source build phase. The product direction is defined, the package basics are in place, the OpenCV camera boundary exists, the pure attention classifier is tested, the MediaPipe face-tracking boundary exists, the local preview loop is wired through the CLI and overlay renderer, session metrics plus local JSON/CSV summary storage are integrated into `focuslens run`, and the local Streamlit dashboard now reads the aggregate CSV history.
+FocusLens is in its early open source build phase. The product direction is defined, the package basics are in place, the OpenCV camera boundary exists, the pure attention classifier is tested, the MediaPipe face-tracking boundary exists, the local preview loop is wired through the CLI and overlay renderer, session metrics plus local JSON/CSV summary storage are integrated into `focuslens run`, and the local Streamlit dashboard reads the aggregate CSV history.
 
-Current local progress, checked on 2026-05-04:
+Current local progress, checked on 2026-05-05:
 
 - Created and tested: `focuslens/config.py`, `focuslens/attention.py`, `focuslens/camera.py`, `focuslens/face_tracker.py`, `focuslens/overlay.py`, `focuslens/cli.py`, `focuslens/session.py`, `focuslens/storage.py`, `focuslens/dashboard.py`, and their current unit tests.
-- Verified with the project virtual environment: `142 passed`, `ruff check .` passed, and `ruff format --check .` passed.
+- Verified with the project virtual environment: `143 passed`, `ruff check .` passed, and `ruff format --check .` passed.
 - The active project virtual environment currently uses Python 3.14 in this workspace; use `.venv\Scripts\python.exe` or activate `.venv` before running checks.
 - Closing `focuslens run` now writes a local JSON summary and appends `sessions.csv`.
 - `focuslens dashboard` now launches the local Streamlit dashboard when Streamlit and pandas are installed.
-- Next: add `docs/privacy.md`, `.github/workflows/ci.yml`, sample session data, and demo assets.
+- Added contributor-ready support files: `docs/privacy.md`, `.github/workflows/ci.yml`, `examples/sample_session.json`, `assets/demo.svg`, and `CONTRIBUTING.md`.
+- Next publication tasks: record a real webcam demo GIF and create the initial GitHub issues after the repository is published.
 
 ## Core Signals
 
@@ -53,7 +55,7 @@ Current local progress, checked on 2026-05-04:
 | `PAUSED` | The session is manually paused. |
 | `UNKNOWN` | A face is visible, but orientation cannot be estimated from available landmarks. |
 
-## Features Planned For V1
+## Current Features
 
 - Local webcam processing with OpenCV.
 - Face landmark detection with MediaPipe.
@@ -81,6 +83,14 @@ flowchart LR
   class B,D,F black;
 ```
 
+## Demo
+
+![FocusLens local demo storyboard](assets/demo.svg)
+
+The repository includes a static demo storyboard for documentation. A real
+webcam demo GIF is still a manual publication task because it should be recorded
+from an actual local run.
+
 ## Tech Stack
 
 | Layer | Tool | Role |
@@ -96,6 +106,15 @@ flowchart LR
 
 ```text
 focuslens/
+|-- .github/
+|   `-- workflows/
+|       `-- ci.yml
+|-- assets/
+|   `-- demo.svg
+|-- docs/
+|   `-- privacy.md
+|-- examples/
+|   `-- sample_session.json
 |-- focuslens/
 |   |-- camera.py
 |   |-- face_tracker.py
@@ -113,6 +132,7 @@ focuslens/
 |-- dashboard.py
 |-- pyproject.toml
 |-- README.md
+|-- CONTRIBUTING.md
 `-- LICENSE
 ```
 
@@ -155,7 +175,7 @@ Session summaries can be sensitive because they include timestamps, focus metric
 
 During `focuslens run`, press `p` to pause or resume attention analysis. The webcam preview remains open while paused, but FocusLens does not run face tracking for paused frames.
 
-`focuslens dashboard` is already exposed as a command, but it needs `dashboard.py` to exist before it can open Streamlit. Only run trusted local dashboard files; `--path` must point to a `.py` file inside this project unless you explicitly pass `--allow-external-dashboard`.
+`focuslens dashboard` launches the included `dashboard.py` Streamlit app. Only run trusted local dashboard files; `--path` must point to a `.py` file inside this project unless you explicitly pass `--allow-external-dashboard`.
 
 Development fallback:
 
@@ -205,6 +225,8 @@ FocusLens is designed around privacy by default:
 - No cloud upload is required.
 - The project does not identify people.
 
+Read the full privacy contract in [docs/privacy.md](docs/privacy.md).
+
 ## Limitations
 
 FocusLens is intentionally lightweight. It estimates useful signals, not absolute truth.
@@ -220,12 +242,12 @@ FocusLens is intentionally lightweight. It estimates useful signals, not absolut
 | --- | --- |
 | `0.1` | Current core: configuration, OpenCV camera boundary, attention classification, MediaPipe face tracker boundary, overlay rendering, session metrics, run CLI, and tests. |
 | `0.2` | Current CLI session saving with the existing session metrics and JSON/CSV storage modules. |
-| `0.3` | Current Streamlit dashboard, session history, and charts. Next: privacy docs and CI. |
-| `1.0` | Stable UX, calibration polish, demo assets, and contributor-ready docs. |
+| `0.3` | Current Streamlit dashboard, session history, charts, privacy docs, sample data, and CI workflow. |
+| `1.0` | Stable UX, calibration polish, real demo GIF, and initial GitHub issue set. |
 
 ## Contributing
 
-Contributions are welcome once the first implementation lands. Good starting areas will include tests, dashboard polish, privacy documentation, Windows setup notes, and sample session files.
+Contributions are welcome. Start with [CONTRIBUTING.md](CONTRIBUTING.md) for setup, checks, privacy guardrails, and good first areas.
 
 ## License
 
