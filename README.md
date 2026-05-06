@@ -50,7 +50,7 @@ The easiest way to try FocusLens on Windows is the release ZIP:
 1. Open [Releases](https://github.com/Flames4fun/Focuslens/releases/latest).
 2. Download `FocusLens-windows-x64.zip`.
 3. Extract the ZIP.
-4. Run:
+4. Double-click `FocusLens.exe`, or run:
 
 ```powershell
 .\FocusLens.exe run
@@ -62,6 +62,10 @@ do not need to download a separate model file for the EXE.
 ## Quick Start
 
 ### Windows Release
+
+Double-click `FocusLens.exe` to start a focus session.
+
+Terminal usage:
 
 ```powershell
 .\FocusLens.exe run
