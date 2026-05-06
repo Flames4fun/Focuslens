@@ -1,0 +1,51 @@
+name: Windows EXE
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build Windows executable
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: pip
+
+      - name: Install package and build tools
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[build]"
+
+      - name: Build EXE
+        run: .\scripts\build_windows_exe.ps1 -SkipInstall
+
+      - name: Smoke test EXE
+        run: .\dist\FocusLens.exe --version
+
+      - name: Package EXE
+        run: Compress-Archive -Path .\dist\FocusLens.exe, .\README.md, .\LICENSE -DestinationPath .\dist\FocusLens-windows-x64.zip -Force
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: FocusLens-windows-x64
+          path: .\dist\FocusLens-windows-x64.zip
+
+      - name: Attach artifact to tagged release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: .\dist\FocusLens-windows-x64.zip

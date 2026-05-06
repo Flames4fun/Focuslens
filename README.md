@@ -5,7 +5,7 @@
   alt="FocusLens animated red and black banner"
 />
 
-[![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-E50914?style=for-the-badge&labelColor=0B0B0F&logo=python&logoColor=white)](#tech-stack)
+[![Python 3.14](https://img.shields.io/badge/Python-3.14-E50914?style=for-the-badge&labelColor=0B0B0F&logo=python&logoColor=white)](#tech-stack)
 [![OpenCV](https://img.shields.io/badge/OpenCV-Webcam%20Vision-E50914?style=for-the-badge&labelColor=0B0B0F&logo=opencv&logoColor=white)](#tech-stack)
 [![MediaPipe](https://img.shields.io/badge/MediaPipe-Face%20Landmarks-E50914?style=for-the-badge&labelColor=0B0B0F)](#tech-stack)
 [![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-E50914?style=for-the-badge&labelColor=0B0B0F&logo=streamlit&logoColor=white)](#dashboard)
@@ -31,17 +31,18 @@ It is designed for students, developers, creators, and deep-work sessions where 
 
 ## Project Status
 
-FocusLens is in its early open source build phase. The product direction is defined, the package basics are in place, the OpenCV camera boundary exists, the pure attention classifier is tested, the MediaPipe face-tracking boundary exists, the local preview loop is wired through the CLI and overlay renderer, session metrics plus local JSON/CSV summary storage are integrated into `focuslens run`, and the local Streamlit dashboard reads the aggregate CSV history.
+FocusLens is in publication prep for its first open source release. The product direction is defined, the package basics are in place, the OpenCV camera boundary exists, the pure attention classifier is tested, the MediaPipe face-tracking boundary exists, the local preview loop is wired through the CLI and overlay renderer, session metrics plus local JSON/CSV summary storage are integrated into `focuslens run`, and the local Streamlit dashboard reads the aggregate CSV history.
 
-Current local progress, checked on 2026-05-05:
+Current local progress, checked on 2026-05-06:
 
 - Created and tested: `focuslens/config.py`, `focuslens/attention.py`, `focuslens/camera.py`, `focuslens/face_tracker.py`, `focuslens/overlay.py`, `focuslens/cli.py`, `focuslens/session.py`, `focuslens/storage.py`, `focuslens/dashboard.py`, and their current unit tests.
-- Verified with the project virtual environment: `143 passed`, `ruff check .` passed, and `ruff format --check .` passed.
-- The active project virtual environment currently uses Python 3.14 in this workspace; use `.venv\Scripts\python.exe` or activate `.venv` before running checks.
+- Verified with `.venv\Scripts\python.exe` on Python 3.14.4: `143 passed`, `ruff check .` passed, `ruff format --check .` passed, `pip check` passed, and OpenCV/MediaPipe imports passed.
+- CI validates Python 3.14, matching the local release target.
 - Closing `focuslens run` now writes a local JSON summary and appends `sessions.csv`.
 - `focuslens dashboard` now launches the local Streamlit dashboard when Streamlit and pandas are installed.
-- Added contributor-ready support files: `docs/privacy.md`, `.github/workflows/ci.yml`, `examples/sample_session.json`, `assets/demo.svg`, and `CONTRIBUTING.md`.
-- Next publication tasks: record a real webcam demo GIF and create the initial GitHub issues after the repository is published.
+- Added contributor-ready support files: `docs/privacy.md`, `docs/architecture.md`, `docs/roadmap.md`, `docs/release.md`, `.github/workflows/ci.yml`, `.github/workflows/windows-exe.yml`, `examples/sample_session.json`, `assets/demo.svg`, and `CONTRIBUTING.md`.
+- `assets/face_landmarker.task` is present and was validated with MediaPipe on a blank in-memory frame.
+- Next publication tasks: run the real webcam flow, record a privacy-safe demo, and create the initial GitHub issues after the repository is published.
 
 ## Core Signals
 
@@ -95,40 +96,56 @@ from an actual local run.
 
 | Layer | Tool | Role |
 | --- | --- | --- |
-| Language | Python 3.11+ | Application, CLI, tests, and data processing. |
+| Language | Python 3.14 | Application, CLI, tests, and data processing. |
 | Vision | OpenCV | Webcam access, frame handling, and overlays. |
 | Landmarks | MediaPipe | Local face landmark detection. |
 | Dashboard | Streamlit | Local web dashboard for session metrics. |
 | Data | pandas | CSV reading, tables, and chart-friendly summaries. |
 | Quality | pytest + Ruff | Tests, linting, and formatting. |
 
-## Target Repository Structure
+## Repository Structure
 
 ```text
 focuslens/
 |-- .github/
 |   `-- workflows/
-|       `-- ci.yml
+|       |-- ci.yml
+|       `-- windows-exe.yml
 |-- assets/
-|   `-- demo.svg
+|   |-- demo.svg
+|   `-- face_landmarker.task
 |-- docs/
-|   `-- privacy.md
+|   |-- architecture.md
+|   |-- privacy.md
+|   |-- release.md
+|   `-- roadmap.md
 |-- examples/
 |   `-- sample_session.json
+|-- scripts/
+|   |-- build_windows_exe.ps1
+|   `-- focuslens_launcher.py
 |-- focuslens/
 |   |-- camera.py
 |   |-- face_tracker.py
 |   |-- attention.py
 |   |-- session.py
 |   |-- storage.py
+|   |-- dashboard.py
 |   |-- overlay.py
 |   |-- config.py
 |   `-- cli.py
-|-- docs/
-|   |-- privacy.md
-|   |-- architecture.md
-|   `-- roadmap.md
 |-- tests/
+|   |-- test_attention.py
+|   |-- test_camera.py
+|   |-- test_cli.py
+|   |-- test_config.py
+|   |-- test_dashboard.py
+|   |-- test_examples.py
+|   |-- test_face_tracker.py
+|   |-- test_overlay.py
+|   |-- test_public_api.py
+|   |-- test_session.py
+|   `-- test_storage.py
 |-- dashboard.py
 |-- pyproject.toml
 |-- README.md
@@ -138,7 +155,7 @@ focuslens/
 
 ## Installation
 
-The planned development setup is:
+Use Python 3.14 for local development and release validation.
 
 ```bash
 git clone https://github.com/Flames4fun/Focuslens.git
@@ -160,6 +177,18 @@ source .venv/bin/activate
 pip install -e ".[dev]"
 ```
 
+## Windows EXE
+
+Build the first local Windows executable with:
+
+```powershell
+.\scripts\build_windows_exe.ps1
+```
+
+The build writes `dist\FocusLens.exe` and bundles the default MediaPipe model.
+See [docs/release.md](docs/release.md) for release notes and current packaging
+scope.
+
 ## Usage
 
 Current CLI:
@@ -169,7 +198,7 @@ focuslens run
 focuslens dashboard
 ```
 
-`focuslens run` expects a local MediaPipe Face Landmarker model at `assets/face_landmarker.task`, or a path supplied with `--model-path` / `FOCUSLENS_MODEL_PATH`. When the run closes, it tries to save JSON and CSV summaries to `sessions/` by default, even if the preview loop fails. Use `--save-dir` to choose another local directory, or `--no-save` for a temporary session.
+`focuslens run` uses the included local MediaPipe Face Landmarker model at `assets/face_landmarker.task`, or a path supplied with `--model-path` / `FOCUSLENS_MODEL_PATH`. Packaged Windows builds use the bundled model by default. When the run closes, it tries to save JSON and CSV summaries to `sessions/` by default, even if the preview loop fails. Use `--save-dir` to choose another local directory, or `--no-save` for a temporary session.
 
 Session summaries can be sensitive because they include timestamps, focus metrics, absence time, and pause history. FocusLens warns when you choose a non-default save directory or when summaries are written inside a Git repository. Confirm the directory is ignored before sharing commits, cloud folders, or synced desktops.
 
@@ -188,14 +217,20 @@ streamlit run dashboard.py
 
 ```json
 {
-  "started_at": "2026-04-27T09:00:00",
-  "ended_at": "2026-04-27T10:15:32",
-  "total_seconds": 4532,
-  "focused_seconds": 3130,
-  "away_seconds": 520,
-  "looking_away_events": 23,
-  "focus_score": 74.2,
-  "presence_score": 88.5
+  "away_events": 2,
+  "away_seconds": 360.0,
+  "ended_at": "2026-04-27T09:45:00+00:00",
+  "focus_score": 73.6,
+  "focused_seconds": 1965.0,
+  "looking_away_events": 5,
+  "looking_away_seconds": 210.0,
+  "paused_seconds": 30.0,
+  "presence_score": 86.52,
+  "started_at": "2026-04-27T09:00:00+00:00",
+  "too_close_seconds": 45.0,
+  "too_far_seconds": 60.0,
+  "total_seconds": 2700.0,
+  "unknown_seconds": 30.0
 }
 ```
 
@@ -238,12 +273,14 @@ FocusLens is intentionally lightweight. It estimates useful signals, not absolut
 
 ## Roadmap
 
-| Version | Focus |
+| Phase | Focus |
 | --- | --- |
-| `0.1` | Current core: configuration, OpenCV camera boundary, attention classification, MediaPipe face tracker boundary, overlay rendering, session metrics, run CLI, and tests. |
-| `0.2` | Current CLI session saving with the existing session metrics and JSON/CSV storage modules. |
-| `0.3` | Current Streamlit dashboard, session history, charts, privacy docs, sample data, and CI workflow. |
-| `1.0` | Stable UX, calibration polish, real demo GIF, and initial GitHub issue set. |
+| Current local build | Core modules, run CLI, session storage, dashboard, privacy docs, tests, and CI are in place. |
+| Publication prep | Real webcam smoke test, privacy-safe demo, Windows EXE artifact, and initial issues. |
+| `1.0` | Stable UX, calibration polish, documented camera troubleshooting, and a tagged Windows release. |
+| Later | Pomodoro mode, YAML config, desktop notifications, HTML reports, and better threshold calibration. |
+
+See [docs/roadmap.md](docs/roadmap.md) for the working release checklist.
 
 ## Contributing
 

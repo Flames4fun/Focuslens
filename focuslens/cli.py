@@ -555,7 +555,28 @@ def default_model_path() -> Path:
     if env_value:
         return Path(env_value).expanduser()
 
+    bundled_model_path = bundled_default_model_path()
+    if bundled_model_path is not None:
+        return bundled_model_path
+
     return DEFAULT_MODEL_PATH
+
+
+def bundled_default_model_path() -> Path | None:
+    """Return the PyInstaller-bundled model path when running from an EXE."""
+
+    bundle_root = getattr(sys, "_MEIPASS", None)
+    if bundle_root is None and getattr(sys, "frozen", False):
+        bundle_root = Path(sys.executable).resolve().parent
+
+    if bundle_root is None:
+        return None
+
+    candidate = Path(bundle_root) / DEFAULT_MODEL_PATH
+    if candidate.is_file():
+        return candidate
+
+    return None
 
 
 def warn_about_save_dir(
@@ -719,6 +740,7 @@ __all__ = [
     "RunOptions",
     "analyze_frame",
     "build_parser",
+    "bundled_default_model_path",
     "create_window_if_supported",
     "default_model_path",
     "destroy_window_if_supported",
