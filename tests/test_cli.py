@@ -168,6 +168,17 @@ def test_default_model_path_uses_environment_variable(monkeypatch, tmp_path):
     assert default_model_path() == model_path
 
 
+def test_default_model_path_uses_bundled_pyinstaller_model(monkeypatch, tmp_path):
+    bundle_root = tmp_path / "bundle"
+    model_path = bundle_root / "assets" / "face_landmarker.task"
+    model_path.parent.mkdir(parents=True)
+    model_path.write_bytes(b"placeholder")
+    monkeypatch.delenv("FOCUSLENS_MODEL_PATH", raising=False)
+    monkeypatch.setattr(sys, "_MEIPASS", str(bundle_root), raising=False)
+
+    assert default_model_path() == model_path
+
+
 def test_run_options_validates_values(tmp_path):
     model_path = tmp_path / "model.task"
 

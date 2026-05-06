@@ -50,6 +50,18 @@ When saving is enabled, FocusLens writes local JSON and CSV summaries under
 FocusLens does not store raw frames, screenshots, video clips, face images, or
 face templates in these session files.
 
+## Score Calculations
+
+FocusLens stores paused time, but paused seconds are excluded from active
+scoring. Current score formulas use:
+
+- `active_seconds = total_seconds - paused_seconds`
+- `focus_score = focused_seconds / active_seconds * 100`
+- `presence_score = (active_seconds - away_seconds) / active_seconds * 100`
+
+When there is no active time, both scores are `0.0` to avoid misleading
+percentages.
+
 ## Sensitive Local Data
 
 Session summaries can still be personal. Timestamps and focus patterns may
