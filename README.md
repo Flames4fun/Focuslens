@@ -237,7 +237,7 @@ dist\FocusLens-windows-x64.zip
 ```
 
 The GitHub workflow `.github/workflows/windows-exe.yml` builds the same ZIP for
-tagged releases such as `v0.1.0`.
+tagged releases such as `v0.2.0`.
 
 The packaged EXE supports both:
 
@@ -372,7 +372,7 @@ absolute truth.
 
 | Phase | Focus |
 | --- | --- |
-| `0.1.0` | Windows ZIP release, local webcam run, packaged dashboard, session summaries. |
+| `0.2.0` | Windows ZIP release, local webcam run, packaged dashboard, improved looking-away detection, session summaries. |
 | Next | Real webcam smoke test, privacy-safe demo, first public release polish. |
 | Later | Pomodoro mode, YAML config, desktop notifications, HTML reports, calibration. |
 
