@@ -15,7 +15,7 @@ class FocusLensConfig:
 
     min_face_ratio: float = 0.05
     max_face_ratio: float = 0.45
-    looking_away_threshold: float = 0.16
+    looking_away_threshold: float = 0.28
     min_event_duration_seconds: float = 1.0
     event_cooldown_seconds: float = 2.0
     save_dir: Path = field(default_factory=lambda: DEFAULT_SAVE_DIR)

@@ -1,3 +1,5 @@
+import pytest
+
 from focuslens.attention import (
     LEFT_EYE_OUTER_INDEX,
     NOSE_TIP_INDEX,
@@ -82,18 +84,27 @@ def test_face_ratio_equal_to_max_is_not_too_close():
 
 
 def test_classify_attention_returns_focused_for_centered_face():
-    config = FocusLensConfig(looking_away_threshold=0.16)
     face = FaceObservation(
         detected=True,
         landmarks=make_landmarks(nose_x=0.5, left_eye_x=0.4, right_eye_x=0.6),
         face_bbox_ratio=0.20,
     )
 
-    assert classify_attention(face, config) == AttentionState.FOCUSED
+    assert classify_attention(face) == AttentionState.FOCUSED
+
+
+def test_classify_attention_keeps_slight_offset_focused():
+    face = FaceObservation(
+        detected=True,
+        landmarks=make_landmarks(nose_x=0.53, left_eye_x=0.4, right_eye_x=0.6),
+        face_bbox_ratio=0.20,
+    )
+
+    assert classify_attention(face) == AttentionState.FOCUSED
 
 
 def test_head_offset_equal_to_threshold_is_focused():
-    config = FocusLensConfig(looking_away_threshold=0.25)
+    config = FocusLensConfig(looking_away_threshold=1.25)
     face = FaceObservation(
         detected=True,
         landmarks=make_landmarks(nose_x=0.75, left_eye_x=0.4, right_eye_x=0.6),
@@ -104,7 +115,7 @@ def test_head_offset_equal_to_threshold_is_focused():
 
 
 def test_classify_attention_returns_looking_away_for_shifted_head():
-    config = FocusLensConfig(looking_away_threshold=0.16)
+    config = FocusLensConfig(looking_away_threshold=1.0)
     face = FaceObservation(
         detected=True,
         landmarks=make_landmarks(nose_x=0.75, left_eye_x=0.4, right_eye_x=0.6),
@@ -114,8 +125,18 @@ def test_classify_attention_returns_looking_away_for_shifted_head():
     assert classify_attention(face, config) == AttentionState.LOOKING_AWAY
 
 
+def test_classify_attention_detects_realistic_horizontal_turn():
+    face = FaceObservation(
+        detected=True,
+        landmarks=make_landmarks(nose_x=0.56, left_eye_x=0.43, right_eye_x=0.57),
+        face_bbox_ratio=0.20,
+    )
+
+    assert classify_attention(face) == AttentionState.LOOKING_AWAY
+
+
 def test_analyze_attention_includes_reason_and_measurements():
-    config = FocusLensConfig(looking_away_threshold=0.16)
+    config = FocusLensConfig(looking_away_threshold=1.0)
     face = FaceObservation(
         detected=True,
         landmarks=make_landmarks(nose_x=0.75, left_eye_x=0.4, right_eye_x=0.6),
@@ -126,7 +147,7 @@ def test_analyze_attention_includes_reason_and_measurements():
 
     assert analysis.state == AttentionState.LOOKING_AWAY
     assert analysis.face_bbox_ratio == 0.20
-    assert analysis.head_offset == 0.25
+    assert analysis.head_offset == pytest.approx(1.25)
     assert analysis.reason == "head_offset_over_threshold"
 
 
@@ -144,14 +165,20 @@ def test_missing_orientation_landmarks_returns_unknown():
     assert analysis.reason == "orientation_landmarks_missing"
 
 
-def test_calculate_head_offset_returns_absolute_nose_distance_from_eye_center():
+def test_calculate_head_offset_returns_normalized_nose_distance_from_eye_center():
     landmarks = make_landmarks(nose_x=0.35, left_eye_x=0.4, right_eye_x=0.6)
 
-    assert round(calculate_head_offset(landmarks), 2) == 0.15
+    assert round(calculate_head_offset(landmarks), 2) == 0.75
 
 
 def test_calculate_head_offset_returns_none_without_required_landmarks():
     assert calculate_head_offset([]) is None
+
+
+def test_calculate_head_offset_returns_none_when_eye_span_is_unusable():
+    landmarks = make_landmarks(left_eye_x=0.5, right_eye_x=0.5)
+
+    assert calculate_head_offset(landmarks) is None
 
 
 def test_has_orientation_landmarks_checks_required_indices():

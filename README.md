@@ -259,7 +259,8 @@ Current release prep, checked on 2026-05-06:
 - Local EXE build was validated with `FocusLens.exe --version` and
   `FocusLens.exe run --help`.
 - The packaged EXE includes the Streamlit dashboard command.
-- Test suite passes with `150 passed`.
+- Looking-away classification uses normalized horizontal head-turn scoring.
+- Test suite passes with `153 passed`.
 - Ruff, Ruff format check, and `pip check` pass.
 
 Manual release work left:

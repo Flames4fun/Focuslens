@@ -24,7 +24,9 @@ focuslens run
 - `focuslens.face_tracker` isolates MediaPipe and returns plain `FaceResult`
   values.
 - `focuslens.attention` is pure classification logic for focused, away,
-  looking-away, distance, paused, and unknown states.
+  looking-away, distance, paused, and unknown states. Horizontal head-turn
+  scoring normalizes nose offset by visible eye span so `LOOKING_AWAY` remains
+  sensitive across different face sizes.
 - `focuslens.session` accumulates state durations and event counts without
   receiving frame data.
 - `focuslens.storage` writes `SessionSummary` values to local JSON and CSV.
@@ -45,7 +47,6 @@ templates.
 
 ## Runtime Requirements
 
-The package targets Python 3.11+. CI validates Python 3.11. The current local
-workspace has tests and dashboard dependencies available in `.venv`, but the
-real webcam flow still needs `opencv-python`, `mediapipe`, and a local
-`assets/face_landmarker.task` model before release validation.
+The package targets Python 3.14. CI validates Python 3.14. The Windows release
+build bundles OpenCV, MediaPipe, Streamlit, the local dashboard, and
+`assets/face_landmarker.task`.

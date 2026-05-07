@@ -8,7 +8,7 @@ Updated: 2026-05-06
   attention classification, overlay rendering, session metrics, storage, CLI,
   and dashboard.
 - Local checks pass with `.venv\Scripts\python.exe` on Python 3.14.4:
-  `150 passed`, `ruff check .`, `ruff format --check .`, `pip check`,
+  `153 passed`, `ruff check .`, `ruff format --check .`, `pip check`,
   OpenCV import, MediaPipe import, and a blank-frame MediaPipe model load.
 - CI is configured to run Ruff and pytest on Python 3.14.
 - Session summaries save to local JSON and CSV.
@@ -19,6 +19,7 @@ Updated: 2026-05-06
   present.
 - A Windows EXE build script and GitHub Actions workflow are present.
 - The packaged EXE supports both `run` and `dashboard`.
+- Looking-away classification uses normalized horizontal head-turn scoring.
 
 ## Next Release Work
 

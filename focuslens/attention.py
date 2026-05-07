@@ -14,6 +14,8 @@ Landmark = tuple[float, float, float]
 NOSE_TIP_INDEX = 1
 LEFT_EYE_OUTER_INDEX = 33
 RIGHT_EYE_OUTER_INDEX = 263
+MIN_EYE_SPAN = 1e-6
+HEAD_OFFSET_TOLERANCE = 1e-9
 
 
 class AttentionState(StrEnum):
@@ -106,7 +108,7 @@ def analyze_attention(
             reason="orientation_landmarks_missing",
         )
 
-    if head_offset > config.looking_away_threshold:
+    if head_offset > config.looking_away_threshold + HEAD_OFFSET_TOLERANCE:
         return AttentionAnalysis(
             state=AttentionState.LOOKING_AWAY,
             face_bbox_ratio=face_bbox_ratio,
@@ -123,7 +125,7 @@ def analyze_attention(
 
 
 def calculate_head_offset(landmarks: Sequence[Landmark]) -> float | None:
-    """Estimate horizontal head offset from nose and eye landmark positions."""
+    """Estimate horizontal head turn normalized by visible eye span."""
 
     if not has_orientation_landmarks(landmarks):
         return None
@@ -132,8 +134,12 @@ def calculate_head_offset(landmarks: Sequence[Landmark]) -> float | None:
     left_eye_x = landmarks[LEFT_EYE_OUTER_INDEX][0]
     right_eye_x = landmarks[RIGHT_EYE_OUTER_INDEX][0]
     eye_center_x = (left_eye_x + right_eye_x) / 2
+    eye_span = abs(right_eye_x - left_eye_x)
 
-    return abs(nose_x - eye_center_x)
+    if eye_span <= MIN_EYE_SPAN:
+        return None
+
+    return abs(nose_x - eye_center_x) / eye_span
 
 
 def has_orientation_landmarks(landmarks: Sequence[Landmark]) -> bool:
