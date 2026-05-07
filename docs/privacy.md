@@ -79,6 +79,42 @@ only `sessions/sessions.csv` from the local FocusLens session directory. It does
 not inspect webcam frames, session JSON files, environment secrets, or external
 URLs.
 
+## Future MCP and LLM Privacy
+
+Future assistant integrations must preserve the same local-first data boundary.
+MCP tools and optional LLM features should operate on aggregate session
+summaries only.
+
+Allowed future assistant data:
+
+- session timestamps;
+- state durations;
+- event counts;
+- focus and presence scores;
+- derived trend summaries;
+- privacy documentation text.
+
+Disallowed future assistant data:
+
+- webcam frames;
+- screenshots;
+- video clips;
+- face images;
+- face embeddings;
+- raw full landmark arrays from real users;
+- identity labels;
+- arbitrary local files;
+- environment secrets.
+
+The first MCP server should be read-only. It should not start the camera, delete
+session history, modify configuration, upload data, or call external LLMs.
+
+Any feature that sends data outside the local machine must be opt-in at runtime,
+show the exact payload before sending, and let the user cancel without changing
+local data.
+
+See [Agentic Safety](agentic_safety.md) for detailed requirements.
+
 ## User Controls
 
 - Use `--no-save` for a temporary session that does not write JSON or CSV.

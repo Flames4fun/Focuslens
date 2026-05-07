@@ -56,10 +56,12 @@ The easiest way to try FocusLens on Windows is the release ZIP:
 .\FocusLens.exe run
 ```
 
-Open the dashboard from the same ZIP:
+Open the dashboard from the same ZIP, either through the main EXE or the
+dedicated dashboard shortcut:
 
 ```powershell
 .\FocusLens.exe dashboard
+.\Dashboard.exe
 ```
 
 The Windows build bundles the default MediaPipe Face Landmarker model, so you
@@ -69,13 +71,15 @@ do not need to download a separate model file for the EXE.
 
 ### Windows Release
 
-Double-click `FocusLens.exe` to start a focus session.
+Double-click `FocusLens.exe` to start a focus session. Double-click
+`Dashboard.exe` to open the dashboard without starting the camera.
 
 Terminal usage:
 
 ```powershell
 .\FocusLens.exe run
 .\FocusLens.exe dashboard
+.\Dashboard.exe
 ```
 
 Controls:
@@ -110,6 +114,20 @@ python -m pip install -e ".[dev,build]"
 focuslens run
 ```
 
+If the camera preview opens but the image is solid green on Windows, try the
+DirectShow backend and MJPG capture format:
+
+```powershell
+focuslens run --camera-backend dshow --camera-fourcc MJPG
+```
+
+If you have multiple cameras or virtual cameras installed, try another index:
+
+```powershell
+focuslens run --camera-index 1 --camera-backend dshow --camera-fourcc MJPG
+focuslens run --camera-index 2 --camera-backend dshow --camera-fourcc MJPG
+```
+
 macOS / Linux:
 
 ```bash
@@ -137,9 +155,9 @@ focuslens run
 
 </div>
 
-A privacy-safe real demo is planned for the first public release page. It
-should blur, crop, or cover the camera image while keeping the FocusLens overlay
-and dashboard visible.
+A privacy-safe real demo is planned for the release page. It should blur, crop,
+or cover the camera image while keeping the FocusLens overlay and dashboard
+visible.
 
 ## What It Tracks
 
@@ -203,6 +221,7 @@ Run it from the Windows release ZIP:
 
 ```powershell
 .\FocusLens.exe dashboard
+.\Dashboard.exe
 ```
 
 Run it from the source environment:
@@ -233,6 +252,7 @@ Outputs:
 
 ```text
 dist\FocusLens.exe
+dist\Dashboard.exe
 dist\FocusLens-windows-x64.zip
 ```
 
@@ -244,13 +264,14 @@ The packaged EXE supports both:
 ```powershell
 .\FocusLens.exe run
 .\FocusLens.exe dashboard
+.\Dashboard.exe
 ```
 
 Release documentation lives in [docs/release.md](docs/release.md).
 
 ## Project Status
 
-Current release prep, checked on 2026-05-06:
+Current 0.2.0 status, checked on 2026-05-07:
 
 - Python 3.14 target.
 - CI runs Ruff and pytest on Python 3.14.
@@ -258,16 +279,23 @@ Current release prep, checked on 2026-05-06:
 - `assets/face_landmarker.task` is included and validated.
 - Local EXE build was validated with `FocusLens.exe --version` and
   `FocusLens.exe run --help`.
-- The packaged EXE includes the Streamlit dashboard command.
+- The packaged ZIP includes the Streamlit dashboard command and a dedicated
+  `Dashboard.exe` launcher.
 - Looking-away classification uses normalized horizontal head-turn scoring.
 - Test suite passes with `153 passed`.
 - Ruff, Ruff format check, and `pip check` pass.
+- `FocusLens.exe --version` returns `FocusLens 0.2.0`.
+- Real webcam smoke test passed in a camera-enabled Windows session: the app
+  opened the camera and updated `FOCUSED`, `LOOKING_AWAY`, `AWAY`, and pause
+  states as expected.
+- Known camera-position note: classification is more stable with the camera
+  facing the user directly or slightly above eye level. A low camera looking
+  upward can make state sensitivity noisier.
 
-Manual release work left:
+Post-release validation work left:
 
-- run a real webcam smoke test;
-- publish a privacy-safe demo;
-- create the GitHub release and attach `FocusLens-windows-x64.zip`.
+- publish or attach a privacy-safe demo;
+- create initial GitHub issues from the post-0.2.0 roadmap.
 
 ## Example Session Summary
 
@@ -308,6 +336,29 @@ sharing them.
 
 Read the full privacy contract in [docs/privacy.md](docs/privacy.md).
 
+## MCP Direction
+
+FocusLens will not add LLM analysis to the camera loop. The next work is to
+make the current local signals measurable, versioned, and safe for future
+assistant integrations.
+
+Planned sequence:
+
+```text
+calibrate -> evaluate -> version schema -> report locally -> expose read-only MCP
+```
+
+Future MCP tools should read aggregate session summaries only. Optional LLM
+reflection, if added, must be opt-in, show the exact payload first, and never
+send frames, screenshots, video, raw landmarks, or identity data.
+
+See:
+
+- [MCP and Safety Strategy](docs/mcp_safety_strategy.md)
+- [Evaluation Plan](docs/evaluation.md)
+- [Session Schema](docs/session_schema.md)
+- [Agentic Safety](docs/agentic_safety.md)
+
 ## Tech Stack
 
 | Layer | Tool | Role |
@@ -331,14 +382,19 @@ focuslens/
 |   |-- demo.svg
 |   `-- face_landmarker.task
 |-- docs/
+|   |-- agentic_safety.md
 |   |-- architecture.md
+|   |-- evaluation.md
+|   |-- mcp_safety_strategy.md
 |   |-- privacy.md
 |   |-- release.md
-|   `-- roadmap.md
+|   |-- roadmap.md
+|   `-- session_schema.md
 |-- examples/
 |   `-- sample_session.json
 |-- scripts/
 |   |-- build_windows_exe.ps1
+|   |-- dashboard_launcher.py
 |   `-- focuslens_launcher.py
 |-- focuslens/
 |   |-- attention.py
@@ -365,6 +421,10 @@ absolute truth.
 
 - Poor lighting can reduce detection quality.
 - Face angle and camera position affect classification.
+- A low camera looking upward at the face can make `FOCUSED`,
+  `LOOKING_AWAY`, and distance states more sensitive or unstable. A front-facing
+  camera, or a slightly elevated camera looking downward, works better in the
+  current `0.2.0` classifier.
 - It is not a medical, fatigue, emotion, or productivity diagnosis tool.
 - It should not be used for employee monitoring or remote surveillance.
 
@@ -373,8 +433,12 @@ absolute truth.
 | Phase | Focus |
 | --- | --- |
 | `0.2.0` | Windows ZIP release, local webcam run, packaged dashboard, improved looking-away detection, session summaries. |
-| Next | Real webcam smoke test, privacy-safe demo, first public release polish. |
-| Later | Pomodoro mode, YAML config, desktop notifications, HTML reports, calibration. |
+| Immediate | Privacy-safe demo, initial GitHub issues, post-release validation notes. |
+| `0.3.0` | Calibration, evaluation harness, session schema v1. |
+| `0.4.0` | Local HTML reports, retention controls, delete/export commands. |
+| `0.5.0` | Read-only MCP server for aggregate summaries. |
+| `0.6.0` | Optional LLM reflection over summaries only, with explicit payload preview. |
+| `0.7.0` | Checksums, SBOM, dependency review, and release trust. |
 
 See [docs/roadmap.md](docs/roadmap.md) for the working release checklist.
 
