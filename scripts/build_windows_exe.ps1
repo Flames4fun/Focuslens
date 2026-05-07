@@ -30,7 +30,14 @@ $PyInstallerArgs = @(
     "--onefile",
     "--collect-all", "mediapipe",
     "--collect-all", "cv2",
+    "--collect-all", "streamlit",
+    "--hidden-import", "focuslens.dashboard",
+    "--hidden-import", "pandas",
+    "--hidden-import", "altair",
+    "--hidden-import", "pyarrow",
+    "--hidden-import", "pydeck",
     "--add-data", "assets\face_landmarker.task;assets",
+    "--add-data", "dashboard.py;.",
     "scripts\focuslens_launcher.py"
 )
 
@@ -44,3 +51,4 @@ Write-Host "Built dist\FocusLens.exe"
 Write-Host "Packaged dist\FocusLens-windows-x64.zip"
 Write-Host "Try: .\dist\FocusLens.exe --version"
 Write-Host "Run: .\dist\FocusLens.exe run"
+Write-Host "Dashboard: .\dist\FocusLens.exe dashboard"

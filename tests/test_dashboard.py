@@ -6,6 +6,7 @@ import pytest
 from focuslens.dashboard import (
     DashboardDataError,
     build_history_rows,
+    default_local_session_root,
     format_duration,
     load_session_summaries,
     summarize_sessions,
@@ -102,6 +103,12 @@ def test_validate_session_csv_path_rejects_reads_outside_allowed_root(tmp_path):
 
     with pytest.raises(DashboardDataError, match="only read FocusLens"):
         validate_session_csv_path(outside_path, allowed_root=allowed_root)
+
+
+def test_default_local_session_root_uses_cwd_when_packaged(monkeypatch, tmp_path):
+    monkeypatch.setattr("sys.frozen", True, raising=False)
+
+    assert default_local_session_root(cwd=tmp_path) == tmp_path / "sessions"
 
 
 def test_summarize_sessions_builds_weighted_metrics_and_deltas():

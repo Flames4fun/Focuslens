@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import csv
 import html
+import sys
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from importlib import import_module
@@ -21,7 +22,18 @@ from focuslens.session import SECONDS_TOLERANCE, SessionSummary
 from focuslens.storage import CSV_FIELDNAMES, CSV_FILENAME
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-LOCAL_SESSION_ROOT = PROJECT_ROOT / DEFAULT_CONFIG.save_dir
+
+
+def default_local_session_root(*, cwd: Path | None = None) -> Path:
+    """Return the session directory used by source or packaged dashboard runs."""
+
+    if getattr(sys, "frozen", False):
+        return (cwd or Path.cwd()) / DEFAULT_CONFIG.save_dir
+
+    return PROJECT_ROOT / DEFAULT_CONFIG.save_dir
+
+
+LOCAL_SESSION_ROOT = default_local_session_root()
 DEFAULT_SESSION_CSV_PATH = LOCAL_SESSION_ROOT / CSV_FILENAME
 
 SECONDS_FIELDS = (
@@ -1184,6 +1196,7 @@ __all__ = [
     "DashboardDataError",
     "DashboardStats",
     "build_history_rows",
+    "default_local_session_root",
     "format_duration",
     "format_score",
     "load_session_summaries",

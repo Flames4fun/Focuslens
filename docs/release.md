@@ -22,10 +22,21 @@ Smoke test the build:
 ```powershell
 .\dist\FocusLens.exe --version
 .\dist\FocusLens.exe run
+.\dist\FocusLens.exe dashboard
 ```
 
 The build bundles `assets\face_landmarker.task`, so the default `run` command
 does not require a separate model path in the packaged executable.
+
+The same executable also bundles the local Streamlit dashboard:
+
+```powershell
+.\FocusLens.exe dashboard
+```
+
+The dashboard reads `sessions\sessions.csv` from the user's current FocusLens
+working directory. That keeps it aligned with the summaries written by
+`FocusLens.exe run`.
 
 The bundled model is the MediaPipe Face Landmarker bundle documented by Google
 AI Edge:
@@ -36,18 +47,10 @@ https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/
 
 ## Scope
 
-The first EXE is focused on the local webcam session flow:
+The Windows EXE supports the local webcam session and dashboard flows:
 
 - `FocusLens.exe run`
+- `FocusLens.exe dashboard`
 - local frame processing only
 - bundled MediaPipe Face Landmarker model
 - JSON and CSV session summaries under `sessions\`
-
-The Streamlit dashboard remains a source/development command for now:
-
-```powershell
-focuslens dashboard
-```
-
-Bundling Streamlit into the same EXE is possible later, but it is a larger
-packaging task than the first release needs.

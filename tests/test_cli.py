@@ -8,10 +8,12 @@ import pytest
 
 from focuslens.attention import AttentionState, FaceObservation
 from focuslens.cli import (
+    DEFAULT_DASHBOARD_PATH,
     CliError,
     RunOptions,
     analyze_frame,
     build_parser,
+    default_dashboard_path,
     default_model_path,
     find_git_repository_root,
     handle_preview_key,
@@ -23,6 +25,7 @@ from focuslens.cli import (
     process_frame,
     run_dashboard,
     run_session,
+    run_streamlit_dashboard_in_process,
     save_finished_session,
     warn_about_save_dir,
 )
@@ -177,6 +180,23 @@ def test_default_model_path_uses_bundled_pyinstaller_model(monkeypatch, tmp_path
     monkeypatch.setattr(sys, "_MEIPASS", str(bundle_root), raising=False)
 
     assert default_model_path() == model_path
+
+
+def test_default_dashboard_path_uses_bundled_pyinstaller_dashboard(
+    monkeypatch,
+    tmp_path,
+):
+    bundle_root = tmp_path / "bundle"
+    dashboard_path = bundle_root / DEFAULT_DASHBOARD_PATH
+    dashboard_path.parent.mkdir(parents=True)
+    dashboard_path.write_text(
+        "from focuslens.dashboard import main\n",
+        encoding="utf-8",
+    )
+    monkeypatch.delenv("FOCUSLENS_MODEL_PATH", raising=False)
+    monkeypatch.setattr(sys, "_MEIPASS", str(bundle_root), raising=False)
+
+    assert default_dashboard_path() == dashboard_path
 
 
 def test_run_options_validates_values(tmp_path):
@@ -702,4 +722,66 @@ def test_run_dashboard_launches_streamlit_without_shell(monkeypatch, tmp_path):
             ],
             {"shell": False},
         )
+    ]
+
+
+def test_run_dashboard_uses_in_process_streamlit_when_packaged(monkeypatch, tmp_path):
+    dashboard_path = tmp_path / "dashboard.py"
+    dashboard_path.write_text(
+        "from focuslens.dashboard import main\n",
+        encoding="utf-8",
+    )
+    calls = []
+
+    def fake_runner(path):
+        calls.append(path)
+        return 9
+
+    monkeypatch.setattr(sys, "frozen", True, raising=False)
+
+    exit_code = run_dashboard(
+        dashboard_path,
+        project_root=tmp_path / "project",
+        allow_external=True,
+        streamlit_runner=fake_runner,
+    )
+
+    assert exit_code == 9
+    assert calls == [dashboard_path.resolve()]
+
+
+def test_run_streamlit_dashboard_in_process_invokes_streamlit(monkeypatch, tmp_path):
+    dashboard_path = tmp_path / "dashboard.py"
+    dashboard_path.write_text(
+        "from focuslens.dashboard import main\n",
+        encoding="utf-8",
+    )
+    calls = []
+
+    class FakeStreamlitMain:
+        def main(self, **kwargs):
+            calls.append(kwargs)
+            return 0
+
+    class FakeStreamlitCli:
+        main = FakeStreamlitMain()
+
+    def fake_import_module(name):
+        assert name == "streamlit.web.cli"
+        return FakeStreamlitCli()
+
+    monkeypatch.setattr("focuslens.cli.import_module", fake_import_module)
+
+    assert run_streamlit_dashboard_in_process(dashboard_path) == 0
+    assert calls == [
+        {
+            "args": [
+                "run",
+                str(dashboard_path),
+                "--global.developmentMode=false",
+                "--browser.gatherUsageStats=false",
+            ],
+            "prog_name": "streamlit",
+            "standalone_mode": False,
+        }
     ]

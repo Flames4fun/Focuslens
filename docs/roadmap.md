@@ -8,7 +8,7 @@ Updated: 2026-05-06
   attention classification, overlay rendering, session metrics, storage, CLI,
   and dashboard.
 - Local checks pass with `.venv\Scripts\python.exe` on Python 3.14.4:
-  `143 passed`, `ruff check .`, `ruff format --check .`, `pip check`,
+  `150 passed`, `ruff check .`, `ruff format --check .`, `pip check`,
   OpenCV import, MediaPipe import, and a blank-frame MediaPipe model load.
 - CI is configured to run Ruff and pytest on Python 3.14.
 - Session summaries save to local JSON and CSV.
@@ -18,13 +18,15 @@ Updated: 2026-05-06
 - Privacy documentation, release notes, sample data, and a static demo SVG are
   present.
 - A Windows EXE build script and GitHub Actions workflow are present.
+- The packaged EXE supports both `run` and `dashboard`.
 
 ## Next Release Work
 
 1. Run a real webcam smoke test covering focused, looking-away, away, paused,
    save, and dashboard flows.
 2. Build `dist\FocusLens.exe` locally with `.\scripts\build_windows_exe.ps1`.
-3. Smoke test `.\dist\FocusLens.exe --version` and `.\dist\FocusLens.exe run`.
+3. Smoke test `.\dist\FocusLens.exe --version`, `.\dist\FocusLens.exe run`,
+   and `.\dist\FocusLens.exe dashboard`.
 4. Record a privacy-safe demo from a local session.
 5. Publish the repository and create the initial GitHub issues.
 
@@ -45,4 +47,4 @@ Updated: 2026-05-06
 - Better calibration flow for lighting, camera position, and distance.
 - Weekly reports from local summaries.
 - OBS or streamer mode.
-- Streamlit dashboard packaging.
+- Desktop app packaging.

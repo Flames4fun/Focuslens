@@ -56,6 +56,12 @@ The easiest way to try FocusLens on Windows is the release ZIP:
 .\FocusLens.exe run
 ```
 
+Open the dashboard from the same ZIP:
+
+```powershell
+.\FocusLens.exe dashboard
+```
+
 The Windows build bundles the default MediaPipe Face Landmarker model, so you
 do not need to download a separate model file for the EXE.
 
@@ -69,6 +75,7 @@ Terminal usage:
 
 ```powershell
 .\FocusLens.exe run
+.\FocusLens.exe dashboard
 ```
 
 Controls:
@@ -192,6 +199,12 @@ history:
 - state distribution;
 - session history table.
 
+Run it from the Windows release ZIP:
+
+```powershell
+.\FocusLens.exe dashboard
+```
+
 Run it from the source environment:
 
 ```powershell
@@ -226,6 +239,13 @@ dist\FocusLens-windows-x64.zip
 The GitHub workflow `.github/workflows/windows-exe.yml` builds the same ZIP for
 tagged releases such as `v0.1.0`.
 
+The packaged EXE supports both:
+
+```powershell
+.\FocusLens.exe run
+.\FocusLens.exe dashboard
+```
+
 Release documentation lives in [docs/release.md](docs/release.md).
 
 ## Project Status
@@ -238,7 +258,8 @@ Current release prep, checked on 2026-05-06:
 - `assets/face_landmarker.task` is included and validated.
 - Local EXE build was validated with `FocusLens.exe --version` and
   `FocusLens.exe run --help`.
-- Test suite passes with `144 passed`.
+- The packaged EXE includes the Streamlit dashboard command.
+- Test suite passes with `150 passed`.
 - Ruff, Ruff format check, and `pip check` pass.
 
 Manual release work left:
@@ -350,7 +371,7 @@ absolute truth.
 
 | Phase | Focus |
 | --- | --- |
-| `0.1.0` | Windows ZIP release, local webcam run, session summaries, dashboard docs. |
+| `0.1.0` | Windows ZIP release, local webcam run, packaged dashboard, session summaries. |
 | Next | Real webcam smoke test, privacy-safe demo, first public release polish. |
 | Later | Pomodoro mode, YAML config, desktop notifications, HTML reports, calibration. |
 

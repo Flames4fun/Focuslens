@@ -39,6 +39,7 @@ from focuslens.storage import SessionSaveResult, save_session_summary
 
 MODEL_PATH_ENV_VAR = "FOCUSLENS_MODEL_PATH"
 DEFAULT_MODEL_PATH = Path("assets") / "face_landmarker.task"
+DEFAULT_DASHBOARD_PATH = Path("dashboard.py")
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 QUIT_KEYS = frozenset({"q", "escape"})
 
@@ -207,7 +208,7 @@ def build_parser() -> argparse.ArgumentParser:
     dashboard_parser.add_argument(
         "--path",
         type=Path,
-        default=Path("dashboard.py"),
+        default=default_dashboard_path(),
         help="Trusted local Streamlit dashboard .py file to run.",
     )
     dashboard_parser.add_argument(
@@ -522,6 +523,7 @@ def run_dashboard(
     *,
     project_root: Path = PROJECT_ROOT,
     allow_external: bool = False,
+    streamlit_runner: Callable[[Path], int] | None = None,
 ) -> int:
     """Launch the local Streamlit dashboard if the entry file exists."""
 
@@ -542,10 +544,89 @@ def run_dashboard(
             "Create dashboard.py before running this command."
         )
 
+    if is_frozen_app():
+        runner = streamlit_runner or run_streamlit_dashboard_in_process
+        return runner(dashboard_path)
+
     return subprocess.call(
         [sys.executable, "-m", "streamlit", "run", str(dashboard_path)],
         shell=False,
     )
+
+
+def run_streamlit_dashboard_in_process(dashboard_path: Path) -> int:
+    """Run Streamlit from a packaged executable without shelling out."""
+
+    try:
+        streamlit_cli = import_module("streamlit.web.cli")
+    except ImportError as exc:
+        raise CliError(
+            "Streamlit is required for the FocusLens dashboard. "
+            'Install it with: python -m pip install "streamlit>=1.35"'
+        ) from exc
+
+    args = [
+        "run",
+        str(dashboard_path),
+        "--global.developmentMode=false",
+        "--browser.gatherUsageStats=false",
+    ]
+    previous_argv = sys.argv[:]
+    sys.argv = ["streamlit", *args]
+    try:
+        result = streamlit_cli.main.main(
+            args=args,
+            prog_name="streamlit",
+            standalone_mode=False,
+        )
+    except SystemExit as exc:
+        if exc.code is None:
+            return 0
+
+        if isinstance(exc.code, int):
+            return exc.code
+
+        raise
+    finally:
+        sys.argv = previous_argv
+
+    if result is None:
+        return 0
+
+    if isinstance(result, int):
+        return result
+
+    return 0
+
+
+def is_frozen_app() -> bool:
+    """Return whether FocusLens is running from a packaged executable."""
+
+    return bool(getattr(sys, "frozen", False))
+
+
+def default_dashboard_path() -> Path:
+    """Return the default Streamlit dashboard path for source or EXE runs."""
+
+    bundled_dashboard_path = bundled_default_dashboard_path()
+    if bundled_dashboard_path is not None:
+        return bundled_dashboard_path
+
+    return DEFAULT_DASHBOARD_PATH
+
+
+def bundled_default_dashboard_path() -> Path | None:
+    """Return the PyInstaller-bundled dashboard script path when available."""
+
+    bundle_root = bundled_root_path()
+    if bundle_root is None:
+        return None
+
+    candidate = bundle_root / DEFAULT_DASHBOARD_PATH
+    if candidate.is_file():
+        return candidate
+
+    return None
 
 
 def default_model_path() -> Path:
@@ -565,16 +646,26 @@ def default_model_path() -> Path:
 def bundled_default_model_path() -> Path | None:
     """Return the PyInstaller-bundled model path when running from an EXE."""
 
-    bundle_root = getattr(sys, "_MEIPASS", None)
-    if bundle_root is None and getattr(sys, "frozen", False):
-        bundle_root = Path(sys.executable).resolve().parent
-
+    bundle_root = bundled_root_path()
     if bundle_root is None:
         return None
 
     candidate = Path(bundle_root) / DEFAULT_MODEL_PATH
     if candidate.is_file():
         return candidate
+
+    return None
+
+
+def bundled_root_path() -> Path | None:
+    """Return the PyInstaller bundle root for one-file or one-folder builds."""
+
+    bundle_root = getattr(sys, "_MEIPASS", None)
+    if bundle_root is not None:
+        return Path(bundle_root)
+
+    if is_frozen_app():
+        return Path(sys.executable).resolve().parent
 
     return None
 
@@ -733,6 +824,7 @@ if __name__ == "__main__":
 
 __all__ = [
     "CliError",
+    "DEFAULT_DASHBOARD_PATH",
     "DEFAULT_MODEL_PATH",
     "MODEL_PATH_ENV_VAR",
     "PROJECT_ROOT",
@@ -740,9 +832,12 @@ __all__ = [
     "RunOptions",
     "analyze_frame",
     "build_parser",
+    "bundled_default_dashboard_path",
     "bundled_default_model_path",
+    "bundled_root_path",
     "create_window_if_supported",
     "default_model_path",
+    "default_dashboard_path",
     "destroy_window_if_supported",
     "finalize_preview_loop",
     "find_git_repository_root",
@@ -758,6 +853,7 @@ __all__ = [
     "process_frame",
     "resolve_from_cwd",
     "run_dashboard",
+    "run_streamlit_dashboard_in_process",
     "run_preview_loop",
     "run_session",
     "save_finished_session",
