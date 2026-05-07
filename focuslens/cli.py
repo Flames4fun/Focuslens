@@ -14,6 +14,7 @@ from collections.abc import Callable, Sequence
 from contextlib import AbstractContextManager
 from dataclasses import dataclass, field
 from importlib import import_module
+from math import isfinite
 from pathlib import Path
 from time import perf_counter
 from typing import Any
@@ -21,6 +22,7 @@ from typing import Any
 from focuslens import __version__
 from focuslens.attention import AttentionAnalysis, AttentionState, analyze_attention
 from focuslens.camera import (
+    CAMERA_BACKENDS,
     Camera,
     CameraOpenError,
     CameraReadError,
@@ -68,6 +70,11 @@ class RunOptions:
 
     model_path: Path
     camera_index: int = DEFAULT_CONFIG.camera_index
+    camera_backend: str = "auto"
+    camera_width: int | None = None
+    camera_height: int | None = None
+    camera_fps: float | None = None
+    camera_fourcc: str | None = None
     window_title: str = DEFAULT_CONFIG.window_title
     save_dir: Path = field(default_factory=lambda: DEFAULT_CONFIG.save_dir)
     save_enabled: bool = True
@@ -82,6 +89,9 @@ class RunOptions:
             int,
         ):
             raise ValueError("camera_index must be a non-negative integer")
+
+        if not isinstance(self.camera_backend, str):
+            raise ValueError("camera_backend must be a string")
 
         if not isinstance(self.model_path, (str, os.PathLike)):
             raise ValueError("model_path must be a path-like value")
@@ -100,6 +110,31 @@ class RunOptions:
 
         object.__setattr__(self, "model_path", Path(self.model_path).expanduser())
         object.__setattr__(self, "save_dir", Path(self.save_dir).expanduser())
+        object.__setattr__(
+            self,
+            "camera_backend",
+            normalize_camera_backend(self.camera_backend),
+        )
+        object.__setattr__(
+            self,
+            "camera_width",
+            validate_optional_positive_int("camera_width", self.camera_width),
+        )
+        object.__setattr__(
+            self,
+            "camera_height",
+            validate_optional_positive_int("camera_height", self.camera_height),
+        )
+        object.__setattr__(
+            self,
+            "camera_fps",
+            validate_optional_positive_number("camera_fps", self.camera_fps),
+        )
+        object.__setattr__(
+            self,
+            "camera_fourcc",
+            validate_optional_fourcc(self.camera_fourcc),
+        )
 
         if self.camera_index < 0:
             raise ValueError("camera_index must be non-negative")
@@ -177,6 +212,39 @@ def build_parser() -> argparse.ArgumentParser:
         help="OpenCV camera index to open.",
     )
     run_parser.add_argument(
+        "--camera-backend",
+        choices=sorted(CAMERA_BACKENDS),
+        default="auto",
+        help=(
+            "OpenCV capture backend. On Windows, dshow can avoid green frames "
+            "from some webcam drivers."
+        ),
+    )
+    run_parser.add_argument(
+        "--camera-width",
+        type=positive_int,
+        default=None,
+        help="Requested camera capture width.",
+    )
+    run_parser.add_argument(
+        "--camera-height",
+        type=positive_int,
+        default=None,
+        help="Requested camera capture height.",
+    )
+    run_parser.add_argument(
+        "--camera-fps",
+        type=positive_float,
+        default=None,
+        help="Requested camera frames per second.",
+    )
+    run_parser.add_argument(
+        "--camera-fourcc",
+        type=fourcc_code,
+        default=None,
+        help="Requested four-character capture format such as MJPG or YUY2.",
+    )
+    run_parser.add_argument(
         "--window-title",
         default=DEFAULT_CONFIG.window_title,
         help="Title for the local OpenCV preview window.",
@@ -230,6 +298,11 @@ def handle_run_command(args: argparse.Namespace) -> int:
     options = RunOptions(
         model_path=args.model_path,
         camera_index=args.camera_index,
+        camera_backend=args.camera_backend,
+        camera_width=args.camera_width,
+        camera_height=args.camera_height,
+        camera_fps=args.camera_fps,
+        camera_fourcc=args.camera_fourcc,
         window_title=args.window_title,
         save_dir=args.save_dir,
         save_enabled=not args.no_save,
@@ -269,7 +342,8 @@ def run_session(
         )
 
     cv2 = cv2_module or load_cv2()
-    camera_factory = camera_factory or _default_camera_factory
+    if camera_factory is None:
+        camera_factory = camera_factory_from_options(options)
     tracker_factory = tracker_factory or _default_tracker_factory
     renderer_factory = renderer_factory or _default_renderer_factory
     session_tracker_factory = (
@@ -776,6 +850,90 @@ def non_negative_int(value: str) -> int:
     return parsed
 
 
+def positive_int(value: str) -> int:
+    try:
+        parsed = int(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("must be an integer") from exc
+
+    if not isfinite(parsed) or parsed <= 0:
+        raise argparse.ArgumentTypeError("must be a positive finite number")
+
+    return parsed
+
+
+def positive_float(value: str) -> float:
+    try:
+        parsed = float(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("must be numeric") from exc
+
+    if parsed <= 0:
+        raise argparse.ArgumentTypeError("must be greater than zero")
+
+    return parsed
+
+
+def fourcc_code(value: str) -> str:
+    try:
+        return validate_optional_fourcc(value) or ""
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError(str(exc)) from exc
+
+
+def normalize_camera_backend(value: str) -> str:
+    normalized = value.strip().lower()
+    if normalized not in CAMERA_BACKENDS:
+        choices = ", ".join(sorted(CAMERA_BACKENDS))
+        raise ValueError(f"camera_backend must be one of: {choices}")
+
+    return normalized
+
+
+def validate_optional_positive_int(name: str, value: int | None) -> int | None:
+    if value is None:
+        return None
+
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise ValueError(f"{name} must be a positive integer")
+
+    if value <= 0:
+        raise ValueError(f"{name} must be greater than zero")
+
+    return value
+
+
+def validate_optional_positive_number(name: str, value: float | None) -> float | None:
+    if value is None:
+        return None
+
+    if isinstance(value, bool) or not isinstance(value, int | float):
+        raise ValueError(f"{name} must be a positive number")
+
+    parsed = float(value)
+    if not isfinite(parsed) or parsed <= 0:
+        raise ValueError(f"{name} must be a positive finite number")
+
+    return parsed
+
+
+def validate_optional_fourcc(value: str | None) -> str | None:
+    if value is None:
+        return None
+
+    if not isinstance(value, str):
+        raise ValueError("camera_fourcc must be a string")
+
+    normalized = value.strip().upper()
+    if len(normalized) != 4:
+        raise ValueError("camera_fourcc must contain exactly four characters")
+
+    if not normalized.isascii() or not normalized.isprintable():
+        raise ValueError("camera_fourcc must contain printable ASCII characters")
+
+    return normalized
+
+
 def create_window_if_supported(cv2: Any, window_title: str) -> None:
     """Create a resizable OpenCV window when the backend exposes namedWindow."""
 
@@ -796,11 +954,22 @@ def destroy_window_if_supported(cv2: Any, window_title: str) -> None:
     destroy_window(window_title)
 
 
-def _default_camera_factory(
-    camera_index: int,
-    cv2_module: Any,
-) -> AbstractContextManager[Camera]:
-    return WebcamCamera(camera_index=camera_index, cv2_module=cv2_module)
+def camera_factory_from_options(options: RunOptions) -> CameraFactory:
+    def camera_factory(
+        camera_index: int,
+        cv2_module: Any,
+    ) -> AbstractContextManager[Camera]:
+        return WebcamCamera(
+            camera_index=camera_index,
+            backend=options.camera_backend,
+            frame_width=options.camera_width,
+            frame_height=options.camera_height,
+            fps=options.camera_fps,
+            fourcc=options.camera_fourcc,
+            cv2_module=cv2_module,
+        )
+
+    return camera_factory
 
 
 def _default_tracker_factory(model_path: Path) -> AbstractContextManager[FaceTracker]:
@@ -835,6 +1004,7 @@ __all__ = [
     "bundled_default_dashboard_path",
     "bundled_default_model_path",
     "bundled_root_path",
+    "camera_factory_from_options",
     "create_window_if_supported",
     "default_model_path",
     "default_dashboard_path",

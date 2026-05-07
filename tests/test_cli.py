@@ -145,6 +145,16 @@ def test_build_parser_parses_run_arguments(tmp_path):
             str(model_path),
             "--camera-index",
             "2",
+            "--camera-backend",
+            "dshow",
+            "--camera-width",
+            "1280",
+            "--camera-height",
+            "720",
+            "--camera-fps",
+            "30",
+            "--camera-fourcc",
+            "mjpg",
             "--window-title",
             "FocusLens Test",
             "--save-dir",
@@ -158,6 +168,11 @@ def test_build_parser_parses_run_arguments(tmp_path):
     assert args.command == "run"
     assert args.model_path == model_path
     assert args.camera_index == 2
+    assert args.camera_backend == "dshow"
+    assert args.camera_width == 1280
+    assert args.camera_height == 720
+    assert args.camera_fps == 30.0
+    assert args.camera_fourcc == "MJPG"
     assert args.window_title == "FocusLens Test"
     assert args.save_dir == save_dir
     assert args.no_save is True
@@ -210,6 +225,21 @@ def test_run_options_validates_values(tmp_path):
 
     with pytest.raises(ValueError, match="camera_index must be"):
         RunOptions(model_path=model_path, camera_index=True)
+
+    with pytest.raises(ValueError, match="camera_backend must be one of"):
+        RunOptions(model_path=model_path, camera_backend="missing")
+
+    with pytest.raises(ValueError, match="camera_width must be"):
+        RunOptions(model_path=model_path, camera_width=0)
+
+    with pytest.raises(ValueError, match="camera_height must be"):
+        RunOptions(model_path=model_path, camera_height=True)
+
+    with pytest.raises(ValueError, match="camera_fps must be"):
+        RunOptions(model_path=model_path, camera_fps=0)
+
+    with pytest.raises(ValueError, match="camera_fourcc must contain exactly"):
+        RunOptions(model_path=model_path, camera_fourcc="MJPEG")
 
     with pytest.raises(ValueError, match="save_dir must not be empty"):
         RunOptions(model_path=model_path, save_dir=" ")
