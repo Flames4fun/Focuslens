@@ -45,6 +45,33 @@ durations, event counts, and focus/presence scores. It does not include raw
 frames, screenshots, video clips, face images, face embeddings, or identity
 templates.
 
+## Future MCP Boundaries
+
+Future assistant-facing layers must sit after `SessionSummary`, not before it:
+
+```text
+SessionSummary
+  -> schema validation
+  -> local reports
+  -> read-only MCP tools
+  -> optional LLM reflection
+```
+
+Those layers may read aggregate session summaries. They must not receive
+`CameraFrame`, raw frames, screenshots, video, face images, face embeddings,
+identity labels, or arbitrary local files.
+
+The first MCP server should be read-only and limited to tools such as
+`list_sessions`, `summarize_sessions`, `compare_periods`, `get_focus_trends`,
+and `read_privacy_contract`. It should not start the camera, write files,
+delete history, modify configuration, or call external LLMs.
+
+Detailed boundaries live in:
+
+- [MCP and Safety Strategy](mcp_safety_strategy.md)
+- [Session Schema](session_schema.md)
+- [Agentic Safety](agentic_safety.md)
+
 ## Runtime Requirements
 
 The package targets Python 3.14. CI validates Python 3.14. The Windows release

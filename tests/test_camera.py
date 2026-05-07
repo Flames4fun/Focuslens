@@ -33,6 +33,7 @@ class FakeCapture:
         self.opened = opened
         self.reads = list(reads or [])
         self.released = False
+        self.properties = []
 
     def isOpened(self):
         return self.opened
@@ -45,9 +46,19 @@ class FakeCapture:
     def release(self):
         self.released = True
 
+    def set(self, property_id, value):
+        self.properties.append((property_id, value))
+        return True
+
 
 class FakeCv2:
     COLOR_BGR2RGB = "BGR2RGB"
+    CAP_DSHOW = 700
+    CAP_MSMF = 1400
+    CAP_PROP_FOURCC = 6
+    CAP_PROP_FRAME_WIDTH = 3
+    CAP_PROP_FRAME_HEIGHT = 4
+    CAP_PROP_FPS = 5
 
     def __init__(self, capture, rgb_frame=None):
         self.capture = capture
@@ -55,13 +66,19 @@ class FakeCv2:
         self.video_capture_indexes = []
         self.cvt_color_calls = []
 
-    def VideoCapture(self, camera_index):
-        self.video_capture_indexes.append(camera_index)
+    def VideoCapture(self, camera_index, backend=None):
+        if backend is None:
+            self.video_capture_indexes.append(camera_index)
+        else:
+            self.video_capture_indexes.append((camera_index, backend))
         return self.capture
 
     def cvtColor(self, frame, code):
         self.cvt_color_calls.append((frame, code))
         return self.rgb_frame
+
+    def VideoWriter_fourcc(self, *characters):
+        return "".join(characters)
 
 
 def test_webcam_camera_rejects_negative_camera_index():
@@ -81,6 +98,45 @@ def test_webcam_camera_reads_bgr_rgb_and_timestamp():
     assert result == CameraFrame(bgr=frame_bgr, rgb=frame_rgb, timestamp_ms=125)
     assert cv2.video_capture_indexes == [2]
     assert cv2.cvt_color_calls == [(frame_bgr, "BGR2RGB")]
+
+
+def test_webcam_camera_can_request_backend_and_capture_options():
+    capture = FakeCapture(reads=[(True, FakeFrame())])
+    cv2 = FakeCv2(capture)
+    camera = WebcamCamera(
+        camera_index=1,
+        backend="dshow",
+        frame_width=1280,
+        frame_height=720,
+        fps=30,
+        fourcc="mjpg",
+        cv2_module=cv2,
+        clock=FakeClock(1.0, 1.1),
+    )
+
+    camera.read()
+
+    assert cv2.video_capture_indexes == [(1, 700)]
+    assert capture.properties == [
+        (6, "MJPG"),
+        (3, 1280),
+        (4, 720),
+        (5, 30.0),
+    ]
+
+
+def test_webcam_camera_rejects_invalid_backend_options():
+    with pytest.raises(ValueError, match="backend must be one of"):
+        WebcamCamera(backend="missing")
+
+    with pytest.raises(ValueError, match="frame_width must be"):
+        WebcamCamera(frame_width=0)
+
+    with pytest.raises(ValueError, match="fps must be"):
+        WebcamCamera(fps=0)
+
+    with pytest.raises(ValueError, match="fourcc must contain exactly"):
+        WebcamCamera(fourcc="MJPEG")
 
 
 def test_webcam_camera_keeps_timestamps_increasing_with_fast_reads():
